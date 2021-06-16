@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="board">
+
+	<insert id="insertBoard" parameterType="b">
+		insert into board values(board_seq.nextval,
+									 #{boardTitle},
+									 #{boardWriter},
+									 #{boardContent},
+									 to_char(sysdate, 'yyyy-mm-dd'))
+	</insert>
+	
+	<select id="selectBoardNo" resultType="int">
+		select max(board_no) from board
+	</select>
+	
+	<insert id="insertFile" parameterType="f">
+		insert into file_tbl values(file_seq.nextval, #{filename}, #{filepath}, #{boardNo})
+	</insert>
+	
+	<select id="boardList" resultType="b">
+	select 
+		board_no as boardNo,
+		board_title as boardTitle,
+		board_writer as boardWriter,
+		board_content as boardContent,
+		board_date as boardDate 
+	from board order by board_no desc
+	</select>
+	
+	<!-- 게시물 상세 조회 -->
+	<select id="selectOneBoard" parameterType="int" resultMap="board">
+		select * from board where board_no = #{boardNo}
+	</select>
+	
+	<select id="getFileList" parameterType="int" resultType="f">
+		select
+			file_no as fileNo,
+			filename,
+			filepath,
+			board_no as boardNo
+		from file_tbl where board_no = #{board_no}
+	</select>
+	
+	<!-- resultMap이름과 id가 동일해야함  / type : resultType과 동일-->
+	<!-- javaType : 콜렉션 / ofType : 콜렉션 안의 객체 -->
+	<!-- collection : // column : select에서 쓰이는 board-_no // select : 조회에 쓰일 select id -->
+	<resultMap type="b" id="board">
+		<result column="board_no" property="boardNo"/>
+		<result column="board_title" property="boardTitle"/>
+		<result column="board_writer" property="boardWriter"/>
+		<result column="board_content" property="boardContent"/>
+		<result column="board_date" property="boardDate"/>
+		<collection property="fileList" column="board_no" javaType="java.util.List" ofType="f" select="getFileList"/>
+	</resultMap>
+	
+</mapper>
